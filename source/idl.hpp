@@ -81,6 +81,7 @@ struct Field
 {
 	Documentation documentation;
 	FieldId id;
+	bool optional;
 	FieldType type;
 	Identifier identifier;
 };
@@ -126,6 +127,13 @@ struct Struct
 	Fields fields;
 };
 
+struct Exception
+{
+	Documentation documentation;
+	Identifier identifier;
+	Fields fields;
+};
+
 struct Throws
 {
 	Fields fields;
@@ -133,9 +141,9 @@ struct Throws
 
 struct Function
 {
-	Documentation returns;
-	FunctionType type;
+//	Documentation returns;
 	Documentation documentation;
+	FunctionType type;
 	Identifier identifier;
 	Parameters parameters;
 	Throws throws;
@@ -180,7 +188,7 @@ struct Const
 	ConstValue value;
 };
 
-typedef boost::variant<Const, Typedef, Enum, Struct, Service> Definition;
+typedef boost::variant<Const, Typedef, Enum, Struct, Exception, Service> Definition;
 
 typedef std::vector<Definition> Definitions;
 
