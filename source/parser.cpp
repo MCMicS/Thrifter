@@ -26,6 +26,7 @@ BOOST_FUSION_ADAPT_STRUCT(idl::VoidType);
 BOOST_FUSION_ADAPT_STRUCT(idl::Field, documentation, id, optional, type, identifier, value);
 BOOST_FUSION_ADAPT_STRUCT(idl::Parameter, documentation, id, type, identifier);
 BOOST_FUSION_ADAPT_STRUCT(idl::Struct, documentation, identifier, fields);
+BOOST_FUSION_ADAPT_STRUCT(idl::Union, documentation, identifier, fields);
 BOOST_FUSION_ADAPT_STRUCT(idl::Exception, documentation, identifier, fields);
 BOOST_FUSION_ADAPT_STRUCT(idl::Throws, fields);
 //BOOST_FUSION_ADAPT_STRUCT(idl::Function, returns, type, documentation, identifier, parameters, throws);
@@ -61,6 +62,7 @@ const x3::rule<struct Function, idl::Function> function("Function");
 const x3::rule<struct Throws, idl::Throws> throws("Throws");
 const x3::rule<struct Service, idl::Service> service("Service");
 const x3::rule<struct Struct, idl::Struct> struct_("Struct");
+const x3::rule<struct Union, idl::Union> union_("Union");
 const x3::rule<struct Exception, idl::Exception> exception("Exception");
 const x3::rule<struct Enumerator, idl::Enumerator> enumerator("Enumerator");
 const x3::rule<struct Enum, idl::Enum> enum_("Enum");
@@ -128,6 +130,7 @@ const auto parameter_def = (-documentation >> -fieldId >> fieldType) > identifie
 const auto service_def = (-documentation >> x3::lit("service")) > identifier > x3::lit('{') > *function > x3::lit('}');
 
 const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3::lit('{') > fields > x3::lit('}');
+const auto union__def = (-documentation >> x3::lit("union")) > identifier > x3::lit('{') > fields > x3::lit('}');
 const auto exception_def = (-documentation >> x3::lit("exception")) > identifier > x3::lit('{') > fields > x3::lit('}');
 //const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3::lit('{') > *((field - x3::lit('}')) > x3::lit(';')) > x3::lit('}');
 const auto enumerator_def = (-documentation >> identifier) > -(x3::lit('=') > x3::int32) > -listSeparator;
@@ -152,7 +155,7 @@ const auto cppInclude_def = x3::lit("cpp_include") > literal;
 const auto include_def = x3::lit("include") > literal;
 const auto header_def = include | cppInclude | namespace_;
 const auto headers_def = *header;
-const auto definition_def = const_ | typedef_ | enum_ | struct_ | exception | service;
+const auto definition_def = const_ | typedef_ | enum_ | struct_ | union_ | exception | service;
 const auto definitions_def = *definition;
 const auto document_def = -documentation > headers > definitions;
 const auto typedef__def = (-documentation >> x3::lit("typedef")) > fieldType > identifier;
@@ -166,7 +169,7 @@ BOOST_SPIRIT_DEFINE(definition, namespaceScope, namespace_);
 BOOST_SPIRIT_DEFINE(cppInclude, include, header, document);
 BOOST_SPIRIT_DEFINE(comment, lineComment, blockComment);
 BOOST_SPIRIT_DEFINE(documentation, lineDocumentation,  blockDocumentation);
-BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq, oneway);
+BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq, oneway, union_);
 
 idl::Document
 parse(const std::string& file)

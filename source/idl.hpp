@@ -153,6 +153,13 @@ struct Struct
 	Fields fields;
 };
 
+struct Union
+{
+	Documentation documentation;
+	Identifier identifier;
+	Fields fields;
+};
+
 struct Exception
 {
 	Documentation documentation;
@@ -200,7 +207,7 @@ struct Const
 	ConstValue value;
 };
 
-typedef boost::variant<Const, Typedef, Enum, Struct, Exception, Service> Definition;
+typedef boost::variant<Const, Typedef, Enum, Struct, Union, Exception, Service> Definition;
 
 typedef std::vector<Definition> Definitions;
 
