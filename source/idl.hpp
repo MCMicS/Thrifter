@@ -37,6 +37,8 @@ struct Namespace
 
 typedef boost::variant<Include, CppInclude, Namespace> Header;
 
+typedef std::vector<Header> Headers;
+
 struct Enumerator
 {
 	Documentation documentation;
@@ -44,11 +46,13 @@ struct Enumerator
 	boost::optional<std::int32_t> value;
 };
 
+typedef std::vector<Enumerator> Enumerators;
+
 struct Enum
 {
 	Documentation documentation;
 	Identifier identifier;
-	std::vector<Enumerator> enumerator;
+	Enumerators enumerators;
 };
 
 enum class BaseType
@@ -80,6 +84,8 @@ struct Field
 	Identifier identifier;
 };
 
+typedef std::vector<Field> Fields;
+
 struct Parameter
 {
 	Documentation documentation;
@@ -87,6 +93,8 @@ struct Parameter
 	FieldType type;
 	Identifier identifier;
 };
+
+typedef std::vector<Parameter> Parameters;
 
 struct ListType
 {
@@ -114,12 +122,12 @@ struct Struct
 {
 	Documentation documentation;
 	Identifier identifier;
-	std::vector<Field> field;
+	Fields fields;
 };
 
 struct Throws
 {
-	std::vector<Field> field;
+	Fields fields;
 };
 
 struct Function
@@ -128,23 +136,28 @@ struct Function
 	FunctionType type;
 	Documentation documentation;
 	Identifier identifier;
-	std::vector<Parameter> parameter;
+	Parameters parameters;
 	Throws throws;
 };
+
+typedef std::vector<Function> Functions;
 
 struct Service
 {
 	Documentation documentation;
 	Identifier identifier;
-	std::vector<Function> function;
+	Functions functions;
 };
 
 typedef boost::variant<Enum, Struct, Service> Definition;
 
+typedef std::vector<Definition> Definitions;
+
 struct Document
 {
-	std::vector<Header> header;
-	std::vector<Definition> definition;
+	Documentation documentation;
+	Headers headers;
+	Definitions definitions;
 };
 
 }

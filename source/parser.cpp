@@ -18,18 +18,18 @@ namespace x3 = boost::spirit::x3;
 
 BOOST_FUSION_ADAPT_STRUCT(idl::Namespace, scope, identifier);
 BOOST_FUSION_ADAPT_STRUCT(idl::Enumerator, documentation, identifier, value);
-BOOST_FUSION_ADAPT_STRUCT(idl::Enum, documentation, identifier, enumerator);
+BOOST_FUSION_ADAPT_STRUCT(idl::Enum, documentation, identifier, enumerators);
 BOOST_FUSION_ADAPT_STRUCT(idl::ListType, type);
 BOOST_FUSION_ADAPT_STRUCT(idl::SetType, type);
 BOOST_FUSION_ADAPT_STRUCT(idl::MapType, key, value);
 BOOST_FUSION_ADAPT_STRUCT(idl::VoidType);
 BOOST_FUSION_ADAPT_STRUCT(idl::Field, documentation, id, type, identifier);
 BOOST_FUSION_ADAPT_STRUCT(idl::Parameter, documentation, id, type, identifier);
-BOOST_FUSION_ADAPT_STRUCT(idl::Struct, documentation, identifier, field);
-BOOST_FUSION_ADAPT_STRUCT(idl::Throws, field);
-BOOST_FUSION_ADAPT_STRUCT(idl::Function, returns, type, documentation, identifier, parameter, throws);
-BOOST_FUSION_ADAPT_STRUCT(idl::Service, documentation, identifier, function);
-BOOST_FUSION_ADAPT_STRUCT(idl::Document, header, definition);
+BOOST_FUSION_ADAPT_STRUCT(idl::Struct, documentation, identifier, fields);
+BOOST_FUSION_ADAPT_STRUCT(idl::Throws, fields);
+BOOST_FUSION_ADAPT_STRUCT(idl::Function, returns, type, documentation, identifier, parameters, throws);
+BOOST_FUSION_ADAPT_STRUCT(idl::Service, documentation, identifier, functions);
+BOOST_FUSION_ADAPT_STRUCT(idl::Document, documentation, headers, definitions);
 
 namespace parser {
 
@@ -59,15 +59,17 @@ const x3::rule<struct Struct, idl::Struct> struct_("Struct");
 const x3::rule<struct Enumerator, idl::Enumerator> enumerator("Enumerator");
 const x3::rule<struct Enum, idl::Enum> enum_("Enum");
 const x3::rule<struct Definition, idl::Definition> definition("Definition");
+const x3::rule<struct Definitions, idl::Definitions> definitions("Definitions");
 const x3::rule<struct NamespaceScope, idl::NamespaceScope> namespaceScope("NamespaceScope");
 const x3::rule<struct Namespace, idl::Namespace> namespace_("Namespace");
 const x3::rule<struct CppInclude, idl::CppInclude> cppInclude("CppInclude");
 const x3::rule<struct Include, idl::Include> include("Include");
 const x3::rule<struct Header, idl::Header> header("Header");
+const x3::rule<struct Headers, idl::Headers> headers("Headers");
 const x3::rule<struct Document, idl::Document> document("Document");
 
 const auto comment_def = lineComment | blockComment;
-const auto lineComment_def = (x3::lit("//") - x3::lit("///")) >> *(x3::char_ - x3::eol) >> x3::eol;
+const auto lineComment_def = ((x3::lit("//") - x3::lit("///")) | x3::lit('#')) >> *(x3::char_ - x3::eol) >> x3::eol;
 const auto blockComment_def = (x3::lit("/*") - x3::lit("/**")) >> *(x3::char_ - x3::lit("*/")) >> x3::lit("*/");
 const auto documentation_def = lineDocumentation | blockDocumentation;
 const auto lineDocumentation_def = x3::lexeme[x3::lit("///") >> *(x3::char_ - x3::eol) >> x3::eol];
@@ -99,7 +101,6 @@ const auto service_def = (-documentation >> x3::lit("service")) > identifier > x
 const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3::lit('{') > *((field - x3::lit('}')) > x3::lit(';')) > x3::lit('}');
 const auto enumerator_def = (-documentation >> identifier) > -(x3::lit('=') > x3::int32);
 const auto enum__def = (-documentation >> x3::lit("enum")) > identifier > x3::lit('{') > enumerator % x3::lit(',') > x3::lit('}');
-const auto definition_def = enum_ | struct_ | service;
 const auto namespaceScope_def = x3::symbols<idl::NamespaceScope>
 {
 	{"*", idl::NamespaceScope::all},
@@ -110,7 +111,10 @@ const auto namespace__def = x3::lit("namespace") > namespaceScope > identifier;
 const auto cppInclude_def = x3::lit("cpp_include") > literal;
 const auto include_def = x3::lit("include") > literal;
 const auto header_def = include | cppInclude | namespace_;
-const auto document_def = *header > *definition;
+const auto headers_def = *header;
+const auto definition_def = enum_ | struct_ | service;
+const auto definitions_def = *definition;
+const auto document_def = -documentation > headers > definitions;
 
 BOOST_SPIRIT_DEFINE(identifier, literal, listType, setType, mapType);
 BOOST_SPIRIT_DEFINE(containerType, baseType, fieldId, fieldType, voidType, functionType);
@@ -119,6 +123,7 @@ BOOST_SPIRIT_DEFINE(definition, namespaceScope, namespace_);
 BOOST_SPIRIT_DEFINE(cppInclude, include, header, document);
 BOOST_SPIRIT_DEFINE(comment, lineComment, blockComment);
 BOOST_SPIRIT_DEFINE(documentation, lineDocumentation,  blockDocumentation);
+BOOST_SPIRIT_DEFINE(headers, definitions);
 
 idl::Document
 parse(const std::string& file)
@@ -140,7 +145,11 @@ parse(const std::string& file)
 		const bool ok = x3::phrase_parse(iterator, end, document, skipper, out);
 
 		if (!ok || iterator != end)
-			throw std::runtime_error("Parsing failed.");
+		{
+			const std::size_t line = spirit::get_line(iterator);
+			const std::size_t column = spirit::get_column(iterator, iterator_t());
+			throw std::runtime_error("Parsing failed: " + std::to_string(line) + ',' + std::to_string(column));
+		}
 	}
 	catch (const x3::expectation_failure<iterator_t>& exception)
 	{
