@@ -12,8 +12,8 @@ int main()
 {
 	try
 	{
-		parser::parse("../ThrifterOld/idl/MyService.thrift");
-		parser::parse("../ThrifterOld/idl/DocTest.thrift");
+		parser::parse("idl/DocTest.thrift");
+		parser::parse("idl/ThriftTest.thrift");
 	}
 	catch (const std::exception& exception)
 	{
