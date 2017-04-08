@@ -100,7 +100,9 @@ const auto baseType_def = x3::symbols<idl::BaseType>
 	{"i16", idl::BaseType::i16},
 	{"i32", idl::BaseType::i32},
 	{"i64", idl::BaseType::i64},
-	{"string", idl::BaseType::string}
+	{"double", idl::BaseType::double_},
+	{"string", idl::BaseType::string},
+	{"binary", idl::BaseType::binary}
 };
 const auto fieldReq_def = x3::symbols<bool>
 {
@@ -140,8 +142,7 @@ const auto namespaceScope_def = x3::symbols<idl::NamespaceScope>
 	{"csharp", idl::NamespaceScope::csharp},
 	{"c_glib", idl::NamespaceScope::c_glib},
 	{"js", idl::NamespaceScope::js},
-	{"st", idl::NamespaceScope::st},
-
+	{"st", idl::NamespaceScope::st}
 };
 const auto namespace__def = x3::lit("namespace") > namespaceScope > identifier;
 const auto cppInclude_def = x3::lit("cpp_include") > literal;

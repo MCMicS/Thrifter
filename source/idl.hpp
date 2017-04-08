@@ -71,7 +71,9 @@ enum class BaseType
 	i16,
 	i32,
 	i64,
+	double_,
 	string,
+	binary
 	//TODO
 };
 
