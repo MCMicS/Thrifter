@@ -1,0 +1,14 @@
+using testing ;
+
+project Thrifter
+	:
+		requirements
+		<cxxflags>-std=c++14
+		<define>BOOST_ALL_DYN_LINK
+	;
+
+exe thrifter
+	:
+		[ glob source/*.cpp ]
+		/site-config//thrift
+	;
