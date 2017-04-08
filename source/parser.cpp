@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <boost/optional/optional_io.hpp>
 #include <boost/fusion/adapted/struct/adapt_struct.hpp>
+#include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_istream_iterator.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
@@ -78,6 +79,8 @@ const x3::rule<struct Document, idl::Document> document("Document");
 const x3::rule<struct Typedef, idl::Typedef> typedef_("Typedef");
 const x3::rule<struct Const, idl::Const> const_("Const");
 const x3::rule<struct ConstValue, idl::ConstValue> constValue("ConstValue");
+const x3::rule<struct ConstList, idl::ConstList> constList("ConstList");
+const x3::rule<struct ConstMap, idl::ConstMap> constMap("ConstMap");
 const x3::rule<struct ListSeparator> listSeparator("ListSeparator");
 const x3::rule<struct FieldReq, bool> fieldReq("FieldReq");
 const x3::rule<struct Oneway, bool> oneway("Oneway");
@@ -90,7 +93,7 @@ const auto documentation_def = lineDocumentation | blockDocumentation;
 const auto lineDocumentation_def = x3::lexeme[x3::lit("///") >> *(x3::char_ - x3::eol) >> x3::eol];
 const auto blockDocumentation_def = x3::lexeme[x3::lit("/**") >> *(x3::char_ - x3::lit("*/")) >> x3::lit("*/")];
 const auto identifier_def = x3::lexeme[(x3::alpha | x3::char_('_')) > *(x3::alnum | x3::char_('.') | x3::char_('_'))];
-const auto literal_def = x3::lexeme[x3::lit('"') > *(x3::char_ - x3::lit('"')) > x3::lit('"')];
+const auto literal_def = x3::lexeme[x3::lit('"') > *(x3::char_ - x3::lit('"')) > x3::lit('"')] | x3::lexeme[x3::lit("'") > *(x3::char_ - x3::lit("'")) > x3::lit("'")];
 const auto listType_def = x3::lit("list") > x3::lit('<') > fieldType > x3::lit('>');
 const auto setType_def = x3::lit("set") > x3::lit('<') > fieldType > x3::lit('>');
 const auto mapType_def = x3::lit("map") > x3::lit('<') > fieldType > x3::lit(',') > fieldType > x3::lit('>');
@@ -160,7 +163,10 @@ const auto definitions_def = *definition;
 const auto document_def = -documentation > headers > definitions;
 const auto typedef__def = (-documentation >> x3::lit("typedef")) > fieldType > identifier;
 const auto const__def = (-documentation >> x3::lit("const")) > fieldType > identifier > x3::lit('=') > constValue > -listSeparator;
-const auto constValue_def = identifier | literal | x3::int32 | x3::double_;
+const auto constValue_def = identifier | literal | x3::int32 | x3::double_ | constList | constMap;
+const auto constList_def = x3::lit('[') > *(constValue > -listSeparator) > x3::lit(']');
+const auto constMap_def = x3::lit('{') > *(constValue > x3::lit(':') > constValue > -listSeparator) > x3::lit('}');
+//const auto constEntry_def = constValue > x3::lit(':') > constValue > -listSeparator;
 
 BOOST_SPIRIT_DEFINE(identifier, literal, listType, setType, mapType);
 BOOST_SPIRIT_DEFINE(containerType, baseType, fieldId, fieldType, voidType, functionType);
@@ -169,7 +175,7 @@ BOOST_SPIRIT_DEFINE(definition, namespaceScope, namespace_);
 BOOST_SPIRIT_DEFINE(cppInclude, include, header, document);
 BOOST_SPIRIT_DEFINE(comment, lineComment, blockComment);
 BOOST_SPIRIT_DEFINE(documentation, lineDocumentation,  blockDocumentation);
-BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq, oneway, union_);
+BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq, oneway, union_, constList, constMap);
 
 idl::Document
 parse(const std::string& file)

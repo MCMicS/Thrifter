@@ -95,8 +95,8 @@ typedef boost::make_recursive_variant<
 			Literal,
 			IntConstant,
 			DoubleConstant,
-			std::vector<boost::recursive_variant_>
-//			std::map<boost::recursive_variant_, boost::recursive_variant_>
+			std::vector<boost::recursive_variant_>,
+			std::map<boost::recursive_variant_, boost::recursive_variant_>
 >::type ConstValue;
 
 typedef std::vector<ConstValue> ConstList;
