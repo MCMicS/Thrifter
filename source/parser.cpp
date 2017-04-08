@@ -136,7 +136,7 @@ const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3
 const auto union__def = (-documentation >> x3::lit("union")) > identifier > x3::lit('{') > fields > x3::lit('}');
 const auto exception_def = (-documentation >> x3::lit("exception")) > identifier > x3::lit('{') > fields > x3::lit('}');
 //const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3::lit('{') > *((field - x3::lit('}')) > x3::lit(';')) > x3::lit('}');
-const auto enumerator_def = (-documentation >> identifier) > -(x3::lit('=') > x3::int32) > -listSeparator;
+const auto enumerator_def = (-documentation >> identifier) > -(x3::lit('=') > x3::int64) > -listSeparator;
 const auto enum__def = (-documentation >> x3::lit("enum")) > identifier > x3::lit('{') > *enumerator > x3::lit('}');
 
 const auto namespaceScope_def = x3::symbols<idl::NamespaceScope>
@@ -163,7 +163,7 @@ const auto definitions_def = *definition;
 const auto document_def = -documentation > headers > definitions;
 const auto typedef__def = (-documentation >> x3::lit("typedef")) > fieldType > identifier;
 const auto const__def = (-documentation >> x3::lit("const")) > fieldType > identifier > x3::lit('=') > constValue > -listSeparator;
-const auto constValue_def = identifier | literal | x3::int32 | x3::double_ | constList | constMap;
+const auto constValue_def = identifier | literal | x3::int64 | x3::double_ | constList | constMap;
 const auto constList_def = x3::lit('[') > *(constValue > -listSeparator) > x3::lit(']');
 const auto constMap_def = x3::lit('{') > *(constValue > x3::lit(':') > constValue > -listSeparator) > x3::lit('}');
 //const auto constEntry_def = constValue > x3::lit(':') > constValue > -listSeparator;

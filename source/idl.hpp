@@ -20,6 +20,21 @@ typedef std::string Literal;
 typedef Literal Include;
 typedef Literal CppInclude;
 
+typedef std::int64_t IntConstant;
+typedef double DoubleConstant;
+
+typedef boost::make_recursive_variant<
+			Identifier,
+			Literal,
+			IntConstant,
+			DoubleConstant,
+			std::vector<boost::recursive_variant_>,
+			std::map<boost::recursive_variant_, boost::recursive_variant_>
+>::type ConstValue;
+
+typedef std::vector<ConstValue> ConstList;
+typedef std::map<ConstValue, ConstValue> ConstMap;
+
 typedef boost::optional<std::string> Documentation;
 
 enum class NamespaceScope
@@ -52,7 +67,7 @@ struct Enumerator
 {
 	Documentation documentation;
 	Identifier identifier;
-	boost::optional<std::int32_t> value;
+	boost::optional<IntConstant> value;
 };
 
 typedef std::vector<Enumerator> Enumerators;
@@ -85,22 +100,7 @@ typedef boost::variant<boost::recursive_wrapper<ListType>, boost::recursive_wrap
 
 typedef boost::variant<Identifier, BaseType, ContainerType> FieldType;
 
-typedef boost::optional<std::int32_t> FieldId;
-
-typedef std::int32_t IntConstant;
-typedef double DoubleConstant;
-
-typedef boost::make_recursive_variant<
-			Identifier,
-			Literal,
-			IntConstant,
-			DoubleConstant,
-			std::vector<boost::recursive_variant_>,
-			std::map<boost::recursive_variant_, boost::recursive_variant_>
->::type ConstValue;
-
-typedef std::vector<ConstValue> ConstList;
-typedef std::map<ConstValue, ConstValue> ConstMap;
+typedef boost::optional<IntConstant> FieldId;
 
 struct Field
 {
