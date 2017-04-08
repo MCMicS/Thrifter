@@ -87,6 +87,21 @@ typedef boost::variant<Identifier, BaseType, ContainerType> FieldType;
 
 typedef boost::optional<std::int32_t> FieldId;
 
+typedef std::int32_t IntConstant;
+typedef double DoubleConstant;
+
+typedef boost::make_recursive_variant<
+			Identifier,
+			Literal,
+			IntConstant,
+			DoubleConstant,
+			std::vector<boost::recursive_variant_>
+//			std::map<boost::recursive_variant_, boost::recursive_variant_>
+>::type ConstValue;
+
+typedef std::vector<ConstValue> ConstList;
+typedef std::map<ConstValue, ConstValue> ConstMap;
+
 struct Field
 {
 	Documentation documentation;
@@ -94,6 +109,7 @@ struct Field
 	bool optional;
 	FieldType type;
 	Identifier identifier;
+	boost::optional<ConstValue> value;
 };
 
 typedef std::vector<Field> Fields;
@@ -153,6 +169,7 @@ struct Function
 {
 //	Documentation returns;
 	Documentation documentation;
+	bool oneway;
 	FunctionType type;
 	Identifier identifier;
 	Parameters parameters;
@@ -174,21 +191,6 @@ struct Typedef
 	FieldType type;
 	Identifier identifier;
 };
-
-typedef std::int32_t IntConstant;
-typedef double DoubleConstant;
-
-typedef boost::make_recursive_variant<
-			Identifier,
-			Literal,
-			IntConstant,
-			DoubleConstant,
-			std::vector<boost::recursive_variant_>
-//			std::map<boost::recursive_variant_, boost::recursive_variant_>
->::type ConstValue;
-
-typedef std::vector<ConstValue> ConstList;
-typedef std::map<ConstValue, ConstValue> ConstMap;
 
 struct Const
 {

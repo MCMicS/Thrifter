@@ -23,13 +23,13 @@ BOOST_FUSION_ADAPT_STRUCT(idl::ListType, type);
 BOOST_FUSION_ADAPT_STRUCT(idl::SetType, type);
 BOOST_FUSION_ADAPT_STRUCT(idl::MapType, key, value);
 BOOST_FUSION_ADAPT_STRUCT(idl::VoidType);
-BOOST_FUSION_ADAPT_STRUCT(idl::Field, documentation, id, optional, type, identifier);
+BOOST_FUSION_ADAPT_STRUCT(idl::Field, documentation, id, optional, type, identifier, value);
 BOOST_FUSION_ADAPT_STRUCT(idl::Parameter, documentation, id, type, identifier);
 BOOST_FUSION_ADAPT_STRUCT(idl::Struct, documentation, identifier, fields);
 BOOST_FUSION_ADAPT_STRUCT(idl::Exception, documentation, identifier, fields);
 BOOST_FUSION_ADAPT_STRUCT(idl::Throws, fields);
 //BOOST_FUSION_ADAPT_STRUCT(idl::Function, returns, type, documentation, identifier, parameters, throws);
-BOOST_FUSION_ADAPT_STRUCT(idl::Function, documentation, type, identifier, parameters, throws);
+BOOST_FUSION_ADAPT_STRUCT(idl::Function, documentation, oneway, type, identifier, parameters, throws);
 BOOST_FUSION_ADAPT_STRUCT(idl::Service, documentation, identifier, functions);
 BOOST_FUSION_ADAPT_STRUCT(idl::Document, documentation, headers, definitions);
 BOOST_FUSION_ADAPT_STRUCT(idl::Typedef, documentation, type, identifier);
@@ -78,6 +78,7 @@ const x3::rule<struct Const, idl::Const> const_("Const");
 const x3::rule<struct ConstValue, idl::ConstValue> constValue("ConstValue");
 const x3::rule<struct ListSeparator> listSeparator("ListSeparator");
 const x3::rule<struct FieldReq, bool> fieldReq("FieldReq");
+const x3::rule<struct Oneway, bool> oneway("Oneway");
 
 const auto listSeparator_def = x3::lit(',') | x3::lit(';');
 const auto comment_def = lineComment | blockComment;
@@ -111,15 +112,17 @@ const auto fieldReq_def = x3::symbols<bool>
 };
 const auto fieldType_def = containerType | baseType | identifier;
 const auto voidType_def = x3::lit("void") >> x3::attr(idl::VoidType());
+const auto oneway_def = x3::lit("oneway") >> x3::attr(true);
 const auto functionType_def = voidType | fieldType;
-const auto throws_def = x3::lit("throws") - x3::lit(';') > x3::lit('(') > field % x3::lit(',') > x3::lit(')');
+const auto throws_def = x3::lit("throws") > x3::lit('(') > fields > x3::lit(')');
+//const auto throws_def = x3::lit("throws") - x3::lit(';') > x3::lit('(') > field % x3::lit(',') > x3::lit(')');
 
-const auto function_def = (-documentation >> functionType) > identifier > x3::lit('(') > *parameter > x3::lit(')') > -throws > listSeparator;
+const auto function_def = (-documentation >> -oneway >> functionType) > identifier > x3::lit('(') > *parameter > x3::lit(')') > -throws > -listSeparator;
 
 //const auto function_def = (-documentation >> functionType) > (-documentation >> identifier) > x3::lit('(') > parameter % x3::lit(',') > x3::lit(')') > -throws;
 const auto fieldId_def = x3::int_ > x3::lit(':');
 const auto fields_def = *field;
-const auto field_def = (-documentation >> -fieldId >> -fieldReq >> fieldType) > identifier > -listSeparator;
+const auto field_def = (-documentation >> -fieldId >> -fieldReq >> fieldType) > identifier > -(x3::lit('=') > constValue) > -listSeparator;
 const auto parameter_def = (-documentation >> -fieldId >> fieldType) > identifier > -listSeparator;
 
 const auto service_def = (-documentation >> x3::lit("service")) > identifier > x3::lit('{') > *function > x3::lit('}');
@@ -163,7 +166,7 @@ BOOST_SPIRIT_DEFINE(definition, namespaceScope, namespace_);
 BOOST_SPIRIT_DEFINE(cppInclude, include, header, document);
 BOOST_SPIRIT_DEFINE(comment, lineComment, blockComment);
 BOOST_SPIRIT_DEFINE(documentation, lineDocumentation,  blockDocumentation);
-BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq);
+BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue, exception, fieldReq, oneway);
 
 idl::Document
 parse(const std::string& file)
