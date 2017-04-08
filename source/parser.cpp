@@ -127,11 +127,21 @@ const auto exception_def = (-documentation >> x3::lit("exception")) > identifier
 //const auto struct__def = (-documentation >> x3::lit("struct")) > identifier > x3::lit('{') > *((field - x3::lit('}')) > x3::lit(';')) > x3::lit('}');
 const auto enumerator_def = (-documentation >> identifier) > -(x3::lit('=') > x3::int32) > -listSeparator;
 const auto enum__def = (-documentation >> x3::lit("enum")) > identifier > x3::lit('{') > *enumerator > x3::lit('}');
+
 const auto namespaceScope_def = x3::symbols<idl::NamespaceScope>
 {
 	{"*", idl::NamespaceScope::all},
 	{"cpp", idl::NamespaceScope::cpp},
-	{"java", idl::NamespaceScope::java}
+	{"java", idl::NamespaceScope::java},
+	{"py", idl::NamespaceScope::py},
+	{"perl", idl::NamespaceScope::perl},
+	{"rb", idl::NamespaceScope::rb},
+	{"cocoa", idl::NamespaceScope::cocoa},
+	{"csharp", idl::NamespaceScope::csharp},
+	{"c_glib", idl::NamespaceScope::c_glib},
+	{"js", idl::NamespaceScope::js},
+	{"st", idl::NamespaceScope::st},
+
 };
 const auto namespace__def = x3::lit("namespace") > namespaceScope > identifier;
 const auto cppInclude_def = x3::lit("cpp_include") > literal;

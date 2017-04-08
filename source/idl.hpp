@@ -26,7 +26,15 @@ enum class NamespaceScope
 {
 	all,
 	cpp,
-	java
+	java,
+	py,
+	perl,
+	rb,
+	cocoa,
+	csharp,
+	c_glib,
+	js,
+	st
 	// TODO
 };
 
