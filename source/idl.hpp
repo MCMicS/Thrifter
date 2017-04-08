@@ -149,7 +149,14 @@ struct Service
 	Functions functions;
 };
 
-typedef boost::variant<Enum, Struct, Service> Definition;
+struct Typedef
+{
+	Documentation documentation;
+	FieldType type;
+	Identifier identifier;
+};
+
+typedef boost::variant<Typedef, Enum, Struct, Service> Definition;
 
 typedef std::vector<Definition> Definitions;
 
