@@ -31,6 +31,7 @@ BOOST_FUSION_ADAPT_STRUCT(idl::Function, returns, type, documentation, identifie
 BOOST_FUSION_ADAPT_STRUCT(idl::Service, documentation, identifier, functions);
 BOOST_FUSION_ADAPT_STRUCT(idl::Document, documentation, headers, definitions);
 BOOST_FUSION_ADAPT_STRUCT(idl::Typedef, documentation, type, identifier);
+BOOST_FUSION_ADAPT_STRUCT(idl::Const, documentation, type, identifier, value);
 
 namespace parser {
 
@@ -70,6 +71,8 @@ const x3::rule<struct Header, idl::Header> header("Header");
 const x3::rule<struct Headers, idl::Headers> headers("Headers");
 const x3::rule<struct Document, idl::Document> document("Document");
 const x3::rule<struct Typedef, idl::Typedef> typedef_("Typedef");
+const x3::rule<struct Const, idl::Const> const_("Const");
+const x3::rule<struct ConstValue, idl::ConstValue> constValue("ConstValue");
 const x3::rule<struct ListSeparator> listSeparator("ListSeparator");
 
 const auto listSeparator_def = x3::lit(',') | x3::lit(';');
@@ -119,10 +122,12 @@ const auto cppInclude_def = x3::lit("cpp_include") > literal;
 const auto include_def = x3::lit("include") > literal;
 const auto header_def = include | cppInclude | namespace_;
 const auto headers_def = *header;
-const auto definition_def = typedef_ | enum_ | struct_ | service;
+const auto definition_def = const_ | typedef_ | enum_ | struct_ | service;
 const auto definitions_def = *definition;
 const auto document_def = -documentation > headers > definitions;
 const auto typedef__def = (-documentation >> x3::lit("typedef")) > fieldType > identifier;
+const auto const__def = (-documentation >> x3::lit("const")) > fieldType > identifier > x3::lit('=') > constValue > -listSeparator;
+const auto constValue_def = identifier | literal | x3::int32 | x3::double_;
 
 BOOST_SPIRIT_DEFINE(identifier, literal, listType, setType, mapType);
 BOOST_SPIRIT_DEFINE(containerType, baseType, fieldId, fieldType, voidType, functionType);
@@ -131,7 +136,7 @@ BOOST_SPIRIT_DEFINE(definition, namespaceScope, namespace_);
 BOOST_SPIRIT_DEFINE(cppInclude, include, header, document);
 BOOST_SPIRIT_DEFINE(comment, lineComment, blockComment);
 BOOST_SPIRIT_DEFINE(documentation, lineDocumentation,  blockDocumentation);
-BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields);
+BOOST_SPIRIT_DEFINE(headers, definitions, typedef_, listSeparator, fields, const_, constValue);
 
 idl::Document
 parse(const std::string& file)

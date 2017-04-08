@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
@@ -156,7 +157,30 @@ struct Typedef
 	Identifier identifier;
 };
 
-typedef boost::variant<Typedef, Enum, Struct, Service> Definition;
+typedef std::int32_t IntConstant;
+typedef double DoubleConstant;
+
+typedef boost::make_recursive_variant<
+			Identifier,
+			Literal,
+			IntConstant,
+			DoubleConstant,
+			std::vector<boost::recursive_variant_>
+//			std::map<boost::recursive_variant_, boost::recursive_variant_>
+>::type ConstValue;
+
+typedef std::vector<ConstValue> ConstList;
+typedef std::map<ConstValue, ConstValue> ConstMap;
+
+struct Const
+{
+	Documentation documentation;
+	FieldType type;
+	Identifier identifier;
+	ConstValue value;
+};
+
+typedef boost::variant<Const, Typedef, Enum, Struct, Service> Definition;
 
 typedef std::vector<Definition> Definitions;
 
